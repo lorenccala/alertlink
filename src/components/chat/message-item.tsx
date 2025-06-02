@@ -27,13 +27,6 @@ export function MessageItem({ message, isGroupChat }: MessageItemProps) {
     return <Clock size={16} className="text-muted-foreground" />;
   };
 
-  const handlePlayVoiceMessage = () => {
-    toast({
-      title: "Playback Not Implemented",
-      description: "Playing voice messages is not yet available in this demo.",
-    });
-  };
-
   const renderContent = () => {
     switch (message.type) {
       case 'file':
@@ -49,20 +42,31 @@ export function MessageItem({ message, isGroupChat }: MessageItemProps) {
             <MapPin size={18} className="text-red-500" />
             <div>
               <p>Location Shared: {message.location?.address || `${message.location?.lat}, ${message.location?.lng}`}</p>
-              <Button variant="link" size="sm" className="p-0 h-auto" onClick={() => alert('Map view not implemented')}>View Map</Button>
+              <Button variant="link" size="sm" className="p-0 h-auto" onClick={() => toast({ title: "Map view not implemented."})}>View Map</Button>
             </div>
           </div>
         );
       case 'voice':
-        return (
-          <div className="flex items-center gap-2">
-            <Mic size={18} />
-            <span>{message.content}</span> {/* e.g., "Voice Message (0:32)" */}
-            <Button variant="outline" size="icon" className="h-8 w-8" onClick={handlePlayVoiceMessage}>
-              <Play size={16} />
-            </Button>
-          </div>
-        );
+        if (message.content.startsWith('data:audio/')) {
+          // Recorded audio message (Data URL)
+          return (
+            <div className="flex items-center gap-2">
+              <Mic size={18} />
+              <audio controls src={message.content} className="h-10 max-w-full"></audio>
+            </div>
+          );
+        } else {
+          // Mock voice message (placeholder text)
+          return (
+            <div className="flex items-center gap-2">
+              <Mic size={18} />
+              <span>{message.content}</span> {/* e.g., "Voice Message (0:32)" */}
+              <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => toast({ title: "Playback for this message type is not implemented."})}>
+                <Play size={16} />
+              </Button>
+            </div>
+          );
+        }
       case 'alert':
          return (
           <Card className="border-destructive bg-destructive/10 shadow-lg">
