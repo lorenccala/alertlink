@@ -2,14 +2,16 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useCurrentLocale } from '@/lib/i18n/client'; // Import useCurrentLocale
 
 export default function HomePage() {
   const router = useRouter();
+  const currentLocale = useCurrentLocale(); // Get current locale
 
   useEffect(() => {
-    // Basic redirect, in a real app, check auth status
-    router.replace('/auth/login');
-  }, [router]);
+    // Prepend the current locale to the path
+    router.replace(`/${currentLocale}/auth/login`);
+  }, [router, currentLocale]); // Add currentLocale to dependencies
 
   return (
     <div className="flex h-screen items-center justify-center">
