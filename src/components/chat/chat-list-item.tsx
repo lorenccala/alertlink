@@ -46,7 +46,7 @@ export function ChatListItem({ chat, isActive, onDeleteChat }: ChatListItemProps
   };
 
   return (
-    <div className="relative group">
+    <div className="relative group"> {/* The 'group' class enables group-hover utilities for children */}
       <Link href={`/dashboard/chat/${chat.id}`} passHref legacyBehavior>
         <a
           className={cn(
@@ -85,7 +85,8 @@ export function ChatListItem({ chat, isActive, onDeleteChat }: ChatListItemProps
           </div>
         </a>
       </Link>
-      <div className="absolute top-1/2 right-2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
+      {/* "More options" button container - appears on group hover */}
+      <div className="absolute top-1/2 right-2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
         <AlertDialog>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
