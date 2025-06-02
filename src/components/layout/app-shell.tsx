@@ -32,8 +32,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from '../ui/input';
-import { LanguageSwitcher } from './language-switcher';
-import { useI18n } from '@/lib/i18n/client';
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -42,7 +40,6 @@ interface AppShellProps {
 export function AppShell({ children }: AppShellProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const t = useI18n();
   const [currentUser, setCurrentUser] = React.useState<User | null>(null);
   const [isClient, setIsClient] = React.useState(false);
 
@@ -69,13 +66,13 @@ export function AppShell({ children }: AppShellProps) {
   };
 
   if (!isClient || !currentUser) {
-    return <div className="flex h-screen items-center justify-center"><p>{t('appShell.loadingUser')}</p></div>;
+    return <div className="flex h-screen items-center justify-center"><p>Loading user data...</p></div>;
   }
   
   const navItems = [
-    { href: '/dashboard', labelKey: 'appShell.navChats', icon: MessageSquare, roles: ['admin', 'responder', 'observer'] },
-    { href: '/dashboard/broadcasts', labelKey: 'appShell.navBroadcasts', icon: Megaphone, roles: ['admin', 'responder', 'observer'] },
-    { href: '/dashboard/settings', labelKey: 'appShell.navSettings', icon: Settings, roles: ['admin', 'responder', 'observer'] },
+    { href: '/dashboard', label: 'Chats', icon: MessageSquare, roles: ['admin', 'responder', 'observer'] },
+    { href: '/dashboard/broadcasts', label: 'Broadcasts', icon: Megaphone, roles: ['admin', 'responder', 'observer'] },
+    { href: '/dashboard/settings', label: 'Settings', icon: Settings, roles: ['admin', 'responder', 'observer'] },
   ];
 
   const filteredNavItems = navItems.filter(item => item.roles.includes(currentUser.role));
@@ -86,7 +83,7 @@ export function AppShell({ children }: AppShellProps) {
         <SidebarHeader className="p-4 items-center">
           <Link href="/dashboard" className="flex items-center gap-2 group-data-[collapsible=icon]:hidden">
             <ShieldAlert className="h-8 w-8 text-primary" />
-            <h1 className="text-2xl font-headline font-semibold">{t('appShell.appName')}</h1>
+            <h1 className="text-2xl font-headline font-semibold">AlertLink</h1>
           </Link>
            <Link href="/dashboard" className="items-center gap-2 hidden group-data-[collapsible=icon]:flex">
             <ShieldAlert className="h-8 w-8 text-primary" />
@@ -97,7 +94,7 @@ export function AppShell({ children }: AppShellProps) {
           <SidebarGroup className="p-2">
             <div className="relative group-data-[collapsible=icon]:hidden mb-2">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input placeholder={t('appShell.searchPlaceholder')} className="pl-8" />
+              <Input placeholder="Search chats..." className="pl-8" />
             </div>
              <Button variant="ghost" size="icon" className="hidden group-data-[collapsible=icon]:flex mx-auto mb-2">
                 <Search className="h-5 w-5" />
@@ -110,11 +107,11 @@ export function AppShell({ children }: AppShellProps) {
                 <SidebarMenuButton
                   asChild
                   isActive={pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))}
-                  tooltip={t(item.labelKey as any)}
+                  tooltip={item.label}
                 >
                   <Link href={item.href}>
                     <item.icon />
-                    <span>{t(item.labelKey as any)}</span>
+                    <span>{item.label}</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -125,10 +122,7 @@ export function AppShell({ children }: AppShellProps) {
         <SidebarSeparator />
 
         <SidebarFooter className="p-3 flex items-center justify-between group-data-[collapsible=icon]:flex-col group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-2">
-          <div className="group-data-[collapsible=icon]:order-2">
-            <LanguageSwitcher />
-          </div>
-          <div className="grow group-data-[collapsible=icon]:grow-0 group-data-[collapsible=icon]:order-1">
+          <div className="grow group-data-[collapsible=icon]:grow-0">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="w-full justify-start group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:h-8 group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:aspect-square">
@@ -141,15 +135,15 @@ export function AppShell({ children }: AppShellProps) {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent side="top" align="start" className="w-56 mb-2">
-                <DropdownMenuLabel>{t('appShell.userMenuTitle', { role: currentUser.role })}</DropdownMenuLabel>
+                <DropdownMenuLabel>My Account ({currentUser.role})</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onSelect={() => router.push('/dashboard/settings')}>
                   <Settings className="mr-2 h-4 w-4" />
-                  <span>{t('appShell.userMenuSettings')}</span>
+                  <span>Settings</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem onSelect={handleLogout} className="text-destructive focus:text-destructive-foreground focus:bg-destructive">
                   <LogOut className="mr-2 h-4 w-4" />
-                  <span>{t('appShell.userMenuLogout')}</span>
+                  <span>Log out</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -159,7 +153,7 @@ export function AppShell({ children }: AppShellProps) {
       <SidebarInset className="flex flex-col">
         <header className="sticky top-0 z-10 flex h-[57px] items-center gap-1 border-b bg-background px-4 md:hidden">
            <SidebarTrigger />
-           <h1 className="text-xl font-semibold">{t('appShell.appName')}</h1>
+           <h1 className="text-xl font-semibold">AlertLink</h1>
         </header>
         <main className="flex-1 overflow-auto">
          {children}
