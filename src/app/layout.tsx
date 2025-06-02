@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { Providers } from '@/components/providers';
 import { I18nProviderClient } from '@/lib/i18n/client';
-import { defaultLocale, locales } from '@/lib/i18n/settings'; // Removed localeLoaderConfig import
+import { defaultLocale, locales } from '@/lib/i18n/settings';
 import type { Locale } from 'next-international/middleware';
 
 export const metadata: Metadata = {
@@ -13,17 +13,19 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-  params: { locale = defaultLocale as Locale } // Ensure default locale is cast to Locale type
+  params,
 }: Readonly<{
   children: React.ReactNode;
-  params: { locale: Locale }
+  params: { locale: string }; // Expect locale as a string from Next.js router
 }>) {
-  // Ensure locale is a valid key. Middleware should already validate.
-  // The type of currentLocaleKey will be 'en' | 'sq' (i.e., Locale)
-  const currentLocaleKey: Locale = locales.includes(locale) ? locale : defaultLocale;
+  // Validate the locale from params, falling back to defaultLocale if invalid or missing.
+  // The middleware should ensure params.locale is a valid Locale.
+  const currentLocale: Locale = locales.includes(params.locale as Locale)
+    ? (params.locale as Locale)
+    : defaultLocale;
 
   return (
-    <html lang={currentLocaleKey} className="dark">
+    <html lang={currentLocale} className="dark">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -31,10 +33,8 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased">
         <I18nProviderClient
-          locale={currentLocaleKey}
-          fallback={<p>Loading translations...</p>}
-          // The loader prop is not needed as I18nProviderClient infers it
-          // from the configuration passed to createI18nClient.
+          locale={currentLocale}
+          // Fallback removed temporarily for debugging
         >
           <Providers>{children}</Providers>
         </I18nProviderClient>
