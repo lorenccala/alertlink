@@ -86,7 +86,7 @@ export function ChatListItem({ chat, isActive, onDeleteChat }: ChatListItemProps
         </a>
       </Link>
       {/* "More options" button container - appears on group hover */}
-      <div className="absolute top-1/2 right-2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+      <div className="absolute top-1/2 right-2 -translate-y-1/2 hidden group-hover:block z-20">
         <AlertDialog>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -114,8 +114,8 @@ export function ChatListItem({ chat, isActive, onDeleteChat }: ChatListItemProps
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction 
-                onClick={() => onDeleteChat(chat.id)} 
+              <AlertDialogAction
+                onClick={() => onDeleteChat(chat.id)}
                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               >
                 Delete
