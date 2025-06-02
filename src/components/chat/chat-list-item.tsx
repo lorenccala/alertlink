@@ -21,11 +21,11 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { cn } from '@/lib/utils';
 import { formatDistanceToNowStrict } from 'date-fns';
 import { Users, User, Lock, Volume2, MoreHorizontal, Trash2 } from 'lucide-react';
+import { useState } from 'react'; // Added import
 
 interface ChatListItemProps {
   chat: Chat;
@@ -34,6 +34,8 @@ interface ChatListItemProps {
 }
 
 export function ChatListItem({ chat, isActive, onDeleteChat }: ChatListItemProps) {
+  const [isAlertOpen, setIsAlertOpen] = useState(false); // State for AlertDialog
+
   const lastMessageTime = chat.lastMessage?.timestamp
     ? formatDistanceToNowStrict(new Date(chat.lastMessage.timestamp), { addSuffix: true })
     : '';
@@ -41,12 +43,21 @@ export function ChatListItem({ chat, isActive, onDeleteChat }: ChatListItemProps
   const ChatIcon = chat.type === 'group' ? Users : chat.type === 'broadcast_channel' ? Volume2 : User;
 
   const handleDeleteClick = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent link navigation when clicking delete
+    e.stopPropagation(); 
     e.preventDefault();
   };
 
+  const handleDeleteInitiate = () => {
+    setIsAlertOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    onDeleteChat(chat.id);
+    setIsAlertOpen(false); 
+  };
+
   return (
-    <div className="relative group"> {/* The 'group' class enables group-hover utilities for children */}
+    <div className="relative group">
       <Link href={`/dashboard/chat/${chat.id}`} passHref legacyBehavior>
         <a
           className={cn(
@@ -85,25 +96,27 @@ export function ChatListItem({ chat, isActive, onDeleteChat }: ChatListItemProps
           </div>
         </a>
       </Link>
-      {/* "More options" button container - appears on group hover */}
+      
       <div className="absolute top-1/2 right-2 -translate-y-1/2 hidden group-hover:block z-20">
-        <AlertDialog>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleDeleteClick}>
-                <MoreHorizontal size={18} />
-                <span className="sr-only">More options</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-              <AlertDialogTrigger asChild>
-                <DropdownMenuItem className="text-destructive focus:text-destructive-foreground focus:bg-destructive/90">
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Delete Chat
-                </DropdownMenuItem>
-              </AlertDialogTrigger>
-            </DropdownMenuContent>
-          </DropdownMenu>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleDeleteClick}>
+              <MoreHorizontal size={18} />
+              <span className="sr-only">More options</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+            <DropdownMenuItem 
+              className="text-destructive focus:text-destructive-foreground focus:bg-destructive/90"
+              onClick={handleDeleteInitiate}
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              Delete Chat
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
           <AlertDialogContent onClick={(e) => e.stopPropagation()}>
             <AlertDialogHeader>
               <AlertDialogTitle>Are you sure?</AlertDialogTitle>
@@ -113,9 +126,9 @@ export function ChatListItem({ chat, isActive, onDeleteChat }: ChatListItemProps
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogCancel onClick={() => setIsAlertOpen(false)}>Cancel</AlertDialogCancel>
               <AlertDialogAction
-                onClick={() => onDeleteChat(chat.id)}
+                onClick={handleConfirmDelete}
                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               >
                 Delete
