@@ -12,15 +12,16 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { Search, UserPlus, User as UserIcon } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { useToast } from '@/hooks/use-toast';
 
 export function ChatList() {
   const pathname = usePathname();
   const router = useRouter();
+  const { toast } = useToast();
   
   const [searchTerm, setSearchTerm] = useState('');
   const [isNewChatDialogOpen, setIsNewChatDialogOpen] = useState(false);
   
-  // Manage chats in local state to allow adding new ones
   const [chatsState, setChatsState] = useState<Chat[]>([]);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [availableUsers, setAvailableUsers] = useState<User[]>([]);
@@ -28,7 +29,7 @@ export function ChatList() {
   useEffect(() => {
     const user = getCurrentUser();
     setCurrentUser(user);
-    setChatsState(mockChats); // Initialize with mock data
+    setChatsState(mockChats); 
 
     if (user) {
       setAvailableUsers(mockUsers.filter(u => u.id !== user.id));
@@ -42,15 +43,14 @@ export function ChatList() {
     if (a.lastMessage?.timestamp && b.lastMessage?.timestamp) {
       return new Date(b.lastMessage.timestamp).getTime() - new Date(a.lastMessage.timestamp).getTime();
     }
-    if (a.lastMessage?.timestamp) return -1; // a has a message, b doesn't, so a is newer
-    if (b.lastMessage?.timestamp) return 1;  // b has a message, a doesn't, so b is newer
-    return 0; // neither has a message
+    if (a.lastMessage?.timestamp) return -1;
+    if (b.lastMessage?.timestamp) return 1;
+    return 0;
   });
 
   const handleSelectUser = (selectedUser: User) => {
     if (!currentUser) return;
 
-    // Check if a direct chat with this user already exists
     const existingChat = chatsState.find(chat => 
       chat.type === 'direct' &&
       chat.participants.some(p => p.id === selectedUser.id) &&
@@ -60,7 +60,6 @@ export function ChatList() {
     if (existingChat) {
       router.push(`/dashboard/chat/${existingChat.id}`);
     } else {
-      // Create a new chat
       const newChatId = `chat${Date.now()}`;
       const newChat: Chat = {
         id: newChatId,
@@ -69,13 +68,29 @@ export function ChatList() {
         participants: [currentUser, selectedUser],
         avatarUrl: selectedUser.avatarUrl,
         isEncrypted: true,
-        lastMessage: undefined, // No messages yet
+        lastMessage: undefined, 
         unreadCount: 0,
       };
       setChatsState(prevChats => [newChat, ...prevChats]);
       router.push(`/dashboard/chat/${newChatId}`);
     }
     setIsNewChatDialogOpen(false);
+  };
+
+  const handleDeleteChat = (chatId: string) => {
+    const chatToDelete = chatsState.find(c => c.id === chatId);
+    if (!chatToDelete) return;
+
+    setChatsState(prevChats => prevChats.filter(chat => chat.id !== chatId));
+    
+    if (pathname === `/dashboard/chat/${chatId}`) {
+      router.push('/dashboard');
+    }
+
+    toast({
+      title: "Chat Deleted",
+      description: `Chat "${chatToDelete.name}" has been removed.`,
+    });
   };
 
   if (!currentUser) {
@@ -145,6 +160,7 @@ export function ChatList() {
                 key={chat.id}
                 chat={chat}
                 isActive={pathname === `/dashboard/chat/${chat.id}`}
+                onDeleteChat={handleDeleteChat}
               />
             ))
           ) : (
