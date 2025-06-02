@@ -1,7 +1,8 @@
+
 'use client';
 
 import { createI18nClient } from 'next-international/client';
-import { getLocaleConfig } from './settings';
+import { localeLoaderConfig } from './settings'; // Import the config object directly
 
 export const { 
   useI18n, 
@@ -9,4 +10,4 @@ export const {
   I18nProviderClient, 
   useChangeLocale,
   useCurrentLocale
-} = createI18nClient(getLocaleConfig());
+} = createI18nClient(localeLoaderConfig); // Pass the object directly
