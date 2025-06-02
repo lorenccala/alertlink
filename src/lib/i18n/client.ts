@@ -2,7 +2,13 @@
 'use client';
 
 import { createI18nClient } from 'next-international/client';
-import { localeLoaderConfig } from './settings'; // Import the config object directly
+// localeLoaderConfig is no longer imported from './settings'
+
+// Define the loader configuration directly within the client module
+const internalLocaleLoaderConfig = {
+  en: () => import('@/locales/en'),
+  sq: () => import('@/locales/sq'),
+} as const;
 
 export const { 
   useI18n, 
@@ -10,4 +16,4 @@ export const {
   I18nProviderClient, 
   useChangeLocale,
   useCurrentLocale
-} = createI18nClient(localeLoaderConfig); // Pass the object directly
+} = createI18nClient(internalLocaleLoaderConfig); // Use the internal configuration

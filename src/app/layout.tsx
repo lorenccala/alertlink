@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { Providers } from '@/components/providers';
 import { I18nProviderClient } from '@/lib/i18n/client';
-import { defaultLocale, localeLoaderConfig, locales } from '@/lib/i18n/settings';
+import { defaultLocale, locales } from '@/lib/i18n/settings'; // Removed localeLoaderConfig import
 import type { Locale } from 'next-international/middleware';
 
 export const metadata: Metadata = {
@@ -13,13 +13,14 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-  params: { locale = defaultLocale }
+  params: { locale = defaultLocale as Locale } // Ensure default locale is cast to Locale type
 }: Readonly<{
   children: React.ReactNode;
   params: { locale: Locale }
 }>) {
-  // Ensure locale is a valid key of localeLoaderConfig, params.locale should already be validated by middleware
-  const currentLocaleKey = (locales.includes(locale as any) ? locale : defaultLocale) as keyof typeof localeLoaderConfig;
+  // Ensure locale is a valid key. Middleware should already validate.
+  // The type of currentLocaleKey will be 'en' | 'sq' (i.e., Locale)
+  const currentLocaleKey: Locale = locales.includes(locale) ? locale : defaultLocale;
 
   return (
     <html lang={currentLocaleKey} className="dark">
@@ -32,7 +33,7 @@ export default function RootLayout({
         <I18nProviderClient
           locale={currentLocaleKey}
           fallback={<p>Loading translations...</p>}
-          // The loader prop is removed as I18nProviderClient can infer it
+          // The loader prop is not needed as I18nProviderClient infers it
           // from the configuration passed to createI18nClient.
         >
           <Providers>{children}</Providers>
