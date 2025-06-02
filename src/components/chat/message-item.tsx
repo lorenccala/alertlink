@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { Message } from '@/types';
@@ -53,7 +54,7 @@ export function MessageItem({ message, isGroupChat }: MessageItemProps) {
         );
       case 'alert':
          return (
-          <Card className="border-destructive bg-destructive/10">
+          <Card className="border-destructive bg-destructive/10 shadow-lg">
             <CardHeader className="p-3">
               <CardTitle className="text-base flex items-center gap-2 text-destructive">
                 <AlertTriangle size={20} /> System Alert
