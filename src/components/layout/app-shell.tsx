@@ -20,7 +20,7 @@ import {
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { MessageSquare, Megaphone, Settings, LogOut, ShieldAlert, ChevronDown, Search } from 'lucide-react';
+import { MessageSquare, Megaphone, Settings, LogOut, ShieldAlert, ChevronDown, Search, Users as UsersIcon } from 'lucide-react';
 import { getCurrentUser, mockUsers } from '@/lib/mock-data';
 import type { User } from '@/types';
 import {
@@ -72,6 +72,7 @@ export function AppShell({ children }: AppShellProps) {
   const navItems = [
     { href: '/dashboard', label: 'Chats', icon: MessageSquare, roles: ['admin', 'responder', 'observer'] },
     { href: '/dashboard/broadcasts', label: 'Broadcasts', icon: Megaphone, roles: ['admin', 'responder', 'observer'] },
+    { href: '/dashboard/user-management', label: 'User Management', icon: UsersIcon, roles: ['admin'] },
     { href: '/dashboard/settings', label: 'Settings', icon: Settings, roles: ['admin', 'responder', 'observer'] },
   ];
 
