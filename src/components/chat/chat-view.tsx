@@ -1,8 +1,9 @@
+
 "use client";
 
 import { useEffect, useState, useRef } from 'react';
 import type { Chat, Message, User } from '@/types';
-import { mockMessages, mockChats, getCurrentUser } from '@/lib/mock-data';
+import { mockMessages, mockChats, getCurrentUser, mockUsers } from '@/lib/mock-data';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { MessageItem } from './message-item';
 import { MessageInput } from './message-input';
@@ -29,11 +30,14 @@ export function ChatView({ chatId }: ChatViewProps) {
     setCurrentUser(user);
 
     if (currentChat) {
-      const chatMessages = (mockMessages[chatId] || []).map(msg => ({
-        ...msg,
-        isOwnMessage: msg.senderId === user.id,
-        senderAvatarUrl: mockUsers.find(u => u.id === msg.senderId)?.avatarUrl,
-      }));
+      const chatMessages = (mockMessages[chatId] || []).map(msg => {
+        const sender = Array.isArray(mockUsers) ? mockUsers.find(u => u.id === msg.senderId) : undefined;
+        return {
+          ...msg,
+          isOwnMessage: msg.senderId === user.id,
+          senderAvatarUrl: sender?.avatarUrl,
+        };
+      });
       setMessages(chatMessages);
     } else {
       setMessages([]);
@@ -99,3 +103,4 @@ export function ChatView({ chatId }: ChatViewProps) {
     </div>
   );
 }
+
