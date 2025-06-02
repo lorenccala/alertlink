@@ -30,7 +30,7 @@ export function Toaster() {
           </Toast>
         )
       })}
-      <ToastViewport className="fixed bottom-0 right-0 z-[100] flex flex-col-reverse p-4 sm:flex-col md:max-w-[420px]" />
+      <ToastViewport />
     </ToastProvider>
   )
 }
