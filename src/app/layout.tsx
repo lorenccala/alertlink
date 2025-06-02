@@ -2,7 +2,8 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { Providers } from '@/components/providers';
-import { I18nProviderClient } from '@/lib/i18n/client';
+// import { I18nProviderClient } from '@/lib/i18n/client'; // No longer directly used here
+import { I18nProviderWrapper } from '@/components/i18n-provider-wrapper'; // New import
 import { defaultLocale, locales } from '@/lib/i18n/settings';
 import type { Locale } from 'next-international/middleware';
 
@@ -32,12 +33,9 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Inter&display=swap" rel="stylesheet" />
       </head>
       <body className="font-body antialiased">
-        <I18nProviderClient
-          locale={currentLocale}
-          // Fallback removed temporarily for debugging
-        >
+        <I18nProviderWrapper locale={currentLocale}>
           <Providers>{children}</Providers>
-        </I18nProviderClient>
+        </I18nProviderWrapper>
       </body>
     </html>
   );
