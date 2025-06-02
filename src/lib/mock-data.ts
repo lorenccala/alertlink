@@ -1,3 +1,4 @@
+
 import type { User, Chat, Message, BroadcastAlert, UserRole, AlertPriority } from '@/types';
 
 export const mockUsers: User[] = [
@@ -33,11 +34,11 @@ export const mockChats: Chat[] = [
     id: 'chat3',
     name: 'City Wide Alerts',
     type: 'broadcast_channel',
-    participants: mockUsers, // All users can be part of a broadcast channel conceptually
+    participants: mockUsers, 
     admins: ['user1'],
     lastMessage: { content: 'Weather advisory issued.', timestamp: new Date(Date.now() - 60000 * 30).toISOString(), senderName: 'System Alert' },
     avatarUrl: 'https://placehold.co/100x100.png',
-    isEncrypted: false, // Broadcasts might not be e2e encrypted in the same way
+    isEncrypted: false, 
   },
 ];
 
@@ -47,7 +48,9 @@ export const mockMessages: { [chatId: string]: Message[] } = {
     { id: 'msg1-2', chatId: 'chat1', senderId: 'currentUser', senderName: 'Eva (You)', content: 'Acknowledged. Zone A is stable, minor flooding.', timestamp: new Date(Date.now() - 60000 * 8).toISOString(), type: 'text', status: 'delivered', isOwnMessage: true },
     { id: 'msg1-3', chatId: 'chat1', senderId: 'user3', senderName: 'Charlie (Responder)', content: 'Sharing images from Zone A now.', timestamp: new Date(Date.now() - 60000 * 7).toISOString(), type: 'text', status: 'read', isOwnMessage: false },
     { id: 'msg1-4', chatId: 'chat1', senderId: 'user3', senderName: 'Charlie (Responder)', content: 'Flooding_ZoneA.jpg', timestamp: new Date(Date.now() - 60000 * 6).toISOString(), type: 'file', fileName: 'Flooding_ZoneA.jpg', fileUrl:'#', status: 'read', isOwnMessage: false },
-    { id: 'msg1-5', chatId: 'chat1', senderId: 'user1', senderName: 'Alice (Admin)', content: 'Thanks Charlie. Bob, any updates from Sector 5?', timestamp: new Date().toISOString(), type: 'text', status: 'sent', isOwnMessage: false },
+    { id: 'msg1-5', chatId: 'chat1', senderId: 'user1', senderName: 'Alice (Admin)', content: 'Voice Message (0:23)', timestamp: new Date(Date.now() - 60000 * 5).toISOString(), type: 'voice', status: 'read', isOwnMessage: false },
+    { id: 'msg1-6', chatId: 'chat1', senderId: 'currentUser', senderName: 'Eva (You)', content: 'Voice Message (0:41)', timestamp: new Date(Date.now() - 60000 * 4).toISOString(), type: 'voice', status: 'delivered', isOwnMessage: true },
+    { id: 'msg1-7', chatId: 'chat1', senderId: 'user1', senderName: 'Alice (Admin)', content: 'Thanks Charlie. Bob, any updates from Sector 5?', timestamp: new Date().toISOString(), type: 'text', status: 'sent', isOwnMessage: false },
   ],
   'chat2': [
     { id: 'msg2-1', chatId: 'chat2', senderId: 'user2', senderName: 'Bob (Responder)', content: 'On my way to sector 5.', timestamp: new Date(Date.now() - 60000 * 5).toISOString(), type: 'text', status: 'read', isOwnMessage: false },

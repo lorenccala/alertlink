@@ -6,8 +6,9 @@ import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Check, CheckCheck, Clock, Paperclip, MapPin, Mic, AlertTriangle } from 'lucide-react';
+import { Check, CheckCheck, Clock, Paperclip, MapPin, Mic, AlertTriangle, Play } from 'lucide-react';
 import { format } from 'date-fns';
+import { useToast } from '@/hooks/use-toast';
 
 interface MessageItemProps {
   message: Message;
@@ -16,6 +17,7 @@ interface MessageItemProps {
 
 export function MessageItem({ message, isGroupChat }: MessageItemProps) {
   const isOwn = message.isOwnMessage;
+  const { toast } = useToast();
 
   const MessageStatusIcon = () => {
     if (!isOwn) return null;
@@ -23,6 +25,13 @@ export function MessageItem({ message, isGroupChat }: MessageItemProps) {
     if (message.status === 'delivered') return <CheckCheck size={16} className="text-muted-foreground" />;
     if (message.status === 'sent') return <Check size={16} className="text-muted-foreground" />;
     return <Clock size={16} className="text-muted-foreground" />;
+  };
+
+  const handlePlayVoiceMessage = () => {
+    toast({
+      title: "Playback Not Implemented",
+      description: "Playing voice messages is not yet available in this demo.",
+    });
   };
 
   const renderContent = () => {
@@ -48,8 +57,10 @@ export function MessageItem({ message, isGroupChat }: MessageItemProps) {
         return (
           <div className="flex items-center gap-2">
             <Mic size={18} />
-            <span>Voice Message (0:32)</span> {/* Placeholder duration */}
-            <Button variant="outline" size="sm" onClick={() => alert('Voice playback not implemented')}>Play</Button>
+            <span>{message.content}</span> {/* e.g., "Voice Message (0:32)" */}
+            <Button variant="outline" size="icon" className="h-8 w-8" onClick={handlePlayVoiceMessage}>
+              <Play size={16} />
+            </Button>
           </div>
         );
       case 'alert':

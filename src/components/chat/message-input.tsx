@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from 'react';
@@ -20,6 +21,15 @@ export function MessageInput({ onSendMessage, chatId }: MessageInputProps) {
     if (message.trim() === '') return;
     onSendMessage(message, 'text');
     setMessage('');
+  };
+
+  const handleSendVoiceMessage = () => {
+    const duration = Math.floor(Math.random() * 50) + 10; // Random duration between 10s and 59s
+    onSendMessage(`Voice Message (0:${duration})`, 'voice');
+    toast({
+      title: "Voice Message Sent (Mock)",
+      description: "A mock voice message has been added to the chat.",
+    });
   };
 
   const handleFeatureClick = (featureName: string) => {
@@ -74,7 +84,7 @@ export function MessageInput({ onSendMessage, chatId }: MessageInputProps) {
           <Button variant="ghost" size="icon" className="rounded-full text-muted-foreground hover:text-primary" onClick={() => handleFeatureClick('File Sharing')}>
             <Paperclip size={22} />
           </Button>
-          <Button variant="ghost" size="icon" className="rounded-full text-muted-foreground hover:text-primary md:hidden" onClick={() => handleFeatureClick('Voice Message')}>
+          <Button variant="ghost" size="icon" className="rounded-full text-muted-foreground hover:text-primary md:hidden" onClick={handleSendVoiceMessage}>
             <Mic size={22} />
           </Button>
         </div>
@@ -88,7 +98,7 @@ export function MessageInput({ onSendMessage, chatId }: MessageInputProps) {
         </Button>
       </div>
       <div className="mt-2 flex gap-2 justify-start md:justify-end">
-        <Button variant="outline" size="sm" className="hidden md:inline-flex" onClick={() => handleFeatureClick('Voice Message')}>
+        <Button variant="outline" size="sm" className="hidden md:inline-flex" onClick={handleSendVoiceMessage}>
           <Mic size={16} className="mr-2" /> Voice Message
         </Button>
         <Button variant="outline" size="sm" onClick={() => handleFeatureClick('Location Sharing')}>
