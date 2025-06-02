@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from 'react';
@@ -32,6 +33,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from '../ui/input';
+import { LanguageSwitcher } from './language-switcher'; // Added import
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -62,6 +64,7 @@ export function AppShell({ children }: AppShellProps) {
   const handleLogout = () => {
     localStorage.removeItem('alertlink-user-role');
     localStorage.removeItem('alertlink-auth');
+    localStorage.removeItem('app-language'); // Clear language preference on logout
     router.push('/auth/login');
   };
 
@@ -121,31 +124,36 @@ export function AppShell({ children }: AppShellProps) {
 
         <SidebarSeparator />
 
-        <SidebarFooter className="p-3">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="w-full justify-start group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:aspect-square">
-                <Avatar className="h-8 w-8 mr-2 group-data-[collapsible=icon]:mr-0">
-                  <AvatarImage src={currentUser.avatarUrl} alt={currentUser.name} data-ai-hint="profile avatar" />
-                  <AvatarFallback>{currentUser.name.substring(0, 1)}</AvatarFallback>
-                </Avatar>
-                <span className="group-data-[collapsible=icon]:hidden grow text-left">{currentUser.name}</span>
-                <ChevronDown className="h-4 w-4 group-data-[collapsible=icon]:hidden" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent side="top" align="start" className="w-56 mb-2">
-              <DropdownMenuLabel>My Account ({currentUser.role})</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onSelect={() => router.push('/dashboard/settings')}>
-                <Settings className="mr-2 h-4 w-4" />
-                <span>Settings</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onSelect={handleLogout} className="text-destructive focus:text-destructive-foreground focus:bg-destructive">
-                <LogOut className="mr-2 h-4 w-4" />
-                <span>Log out</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+        <SidebarFooter className="p-3 flex items-center justify-between group-data-[collapsible=icon]:flex-col group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-2">
+          <div className="group-data-[collapsible=icon]:order-2">
+            <LanguageSwitcher />
+          </div>
+          <div className="grow group-data-[collapsible=icon]:grow-0 group-data-[collapsible=icon]:order-1">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="w-full justify-start group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:h-8 group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:aspect-square">
+                  <Avatar className="h-8 w-8 mr-2 group-data-[collapsible=icon]:mr-0">
+                    <AvatarImage src={currentUser.avatarUrl} alt={currentUser.name} data-ai-hint="profile avatar" />
+                    <AvatarFallback>{currentUser.name.substring(0, 1)}</AvatarFallback>
+                  </Avatar>
+                  <span className="group-data-[collapsible=icon]:hidden grow text-left">{currentUser.name}</span>
+                  <ChevronDown className="h-4 w-4 group-data-[collapsible=icon]:hidden" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent side="top" align="start" className="w-56 mb-2">
+                <DropdownMenuLabel>My Account ({currentUser.role})</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onSelect={() => router.push('/dashboard/settings')}>
+                  <Settings className="mr-2 h-4 w-4" />
+                  <span>Settings</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={handleLogout} className="text-destructive focus:text-destructive-foreground focus:bg-destructive">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Log out</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </SidebarFooter>
       </Sidebar>
       <SidebarInset className="flex flex-col">
