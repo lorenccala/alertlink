@@ -1,12 +1,20 @@
 
-"use client"; // Required for not-found.tsx in App Router if it uses hooks or event handlers, though not strictly for this static one.
+"use client";
 
 import Link from 'next/link';
 import { useCurrentLocale } from '@/lib/i18n/client';
-import type { Locale } from '@/lib/i18n/settings';
+import { type Locale, defaultLocale, locales } from '@/lib/i18n/settings';
 
 export default function NotFound() {
-  const currentLocale = useCurrentLocale() as Locale;
+  const localeFromHook = useCurrentLocale();
+  let currentValidLocale: Locale;
+
+  // Check if the locale from the hook is valid and supported, otherwise use default
+  if (localeFromHook && locales.includes(localeFromHook as Locale)) {
+    currentValidLocale = localeFromHook as Locale;
+  } else {
+    currentValidLocale = defaultLocale;
+  }
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background text-foreground">
@@ -17,7 +25,7 @@ export default function NotFound() {
           <p className="text-xl text-muted-foreground">
             This page could not be found.
           </p>
-          <Link href={`/${currentLocale}/dashboard`} className="mt-2 text-sm text-primary hover:underline">
+          <Link href={`/${currentValidLocale}/dashboard`} className="mt-2 text-sm text-primary hover:underline">
             Go back to Dashboard
           </Link>
         </div>
