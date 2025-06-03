@@ -21,8 +21,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { MessageSquare, Megaphone, Settings, LogOut, ShieldAlert, ChevronDown, Search, Users as UsersIcon } from 'lucide-react';
-import { getCurrentUser, mockUsers } from '@/lib/mock-data';
-import type { User } from '@/types';
+import { getCurrentUser, mockUsers, getLocalizedName } from '@/lib/mock-data';
+import type { User, Locale } from '@/types';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -32,6 +32,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from '../ui/input';
+import { LanguageSwitcher } from './language-switcher';
+import { useI18n, useCurrentLocale } from '@/lib/i18n/client';
+
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -42,6 +45,8 @@ export function AppShell({ children }: AppShellProps) {
   const pathname = usePathname();
   const [currentUser, setCurrentUser] = React.useState<User | null>(null);
   const [isClient, setIsClient] = React.useState(false);
+  const t = useI18n();
+  const currentLocale = useCurrentLocale() as Locale;
 
 
   React.useEffect(() => {
@@ -50,19 +55,19 @@ export function AppShell({ children }: AppShellProps) {
     const authStatus = localStorage.getItem('alertlink-auth');
 
     if (!authStatus || !storedRole) {
-      router.replace('/auth/login');
+      router.replace(`/${currentLocale}/auth/login`);
       return;
     }
     
-    const user = mockUsers.find(u => u.role === storedRole) || getCurrentUser();
+    const user = mockUsers.find(u => u.role === storedRole) || getCurrentUser(); // getCurrentUser might need locale
     setCurrentUser({...user, role: storedRole}); 
-  }, [router]);
+  }, [router, currentLocale]);
 
 
   const handleLogout = () => {
     localStorage.removeItem('alertlink-user-role');
     localStorage.removeItem('alertlink-auth');
-    router.push('/auth/login');
+    router.push(`/${currentLocale}/auth/login`);
   };
 
   if (!isClient || !currentUser) {
@@ -70,23 +75,24 @@ export function AppShell({ children }: AppShellProps) {
   }
   
   const navItems = [
-    { href: '/dashboard', label: 'Chats', icon: MessageSquare, roles: ['admin', 'responder', 'observer'] },
-    { href: '/dashboard/broadcasts', label: 'Broadcasts', icon: Megaphone, roles: ['admin', 'responder', 'observer'] },
-    { href: '/dashboard/user-management', label: 'User Management', icon: UsersIcon, roles: ['admin'] },
-    { href: '/dashboard/settings', label: 'Settings', icon: Settings, roles: ['admin', 'responder', 'observer'] },
+    { href: `/${currentLocale}/dashboard`, labelKey: 'appShell.chats', icon: MessageSquare, roles: ['admin', 'responder', 'observer'] },
+    { href: `/${currentLocale}/dashboard/broadcasts`, labelKey: 'appShell.broadcasts', icon: Megaphone, roles: ['admin', 'responder', 'observer'] },
+    { href: `/${currentLocale}/dashboard/user-management`, labelKey: 'appShell.userManagement', icon: UsersIcon, roles: ['admin'] },
+    { href: `/${currentLocale}/dashboard/settings`, labelKey: 'appShell.settings', icon: Settings, roles: ['admin', 'responder', 'observer'] },
   ];
 
   const filteredNavItems = navItems.filter(item => item.roles.includes(currentUser.role));
+  const currentUserName = getLocalizedName(currentUser.name, currentLocale);
 
   return (
     <SidebarProvider defaultOpen>
       <Sidebar collapsible="icon" variant="sidebar" side="left">
         <SidebarHeader className="p-4 items-center">
-          <Link href="/dashboard" className="flex items-center gap-2 group-data-[collapsible=icon]:hidden">
+          <Link href={`/${currentLocale}/dashboard`} className="flex items-center gap-2 group-data-[collapsible=icon]:hidden">
             <ShieldAlert className="h-8 w-8 text-primary" />
             <h1 className="text-2xl font-headline font-semibold">AlertLink</h1>
           </Link>
-           <Link href="/dashboard" className="items-center gap-2 hidden group-data-[collapsible=icon]:flex">
+           <Link href={`/${currentLocale}/dashboard`} className="items-center gap-2 hidden group-data-[collapsible=icon]:flex">
             <ShieldAlert className="h-8 w-8 text-primary" />
           </Link>
         </SidebarHeader>
@@ -95,7 +101,7 @@ export function AppShell({ children }: AppShellProps) {
           <SidebarGroup className="p-2">
             <div className="relative group-data-[collapsible=icon]:hidden mb-2">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Search chats..." className="pl-8" />
+              <Input placeholder={t('appShell.searchChats')} className="pl-8" />
             </div>
              <Button variant="ghost" size="icon" className="hidden group-data-[collapsible=icon]:flex mx-auto mb-2">
                 <Search className="h-5 w-5" />
@@ -107,12 +113,12 @@ export function AppShell({ children }: AppShellProps) {
               <SidebarMenuItem key={item.href}>
                 <SidebarMenuButton
                   asChild
-                  isActive={pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))}
-                  tooltip={item.label}
+                  isActive={pathname === item.href || (item.href !== `/${currentLocale}/dashboard` && pathname.startsWith(item.href))}
+                  tooltip={t(item.labelKey as any)}
                 >
                   <Link href={item.href}>
                     <item.icon />
-                    <span>{item.label}</span>
+                    <span>{t(item.labelKey as any)}</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -122,29 +128,32 @@ export function AppShell({ children }: AppShellProps) {
 
         <SidebarSeparator />
 
-        <SidebarFooter className="p-3 flex items-center justify-between group-data-[collapsible=icon]:flex-col group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-2">
-          <div className="grow group-data-[collapsible=icon]:grow-0">
+        <SidebarFooter className="p-3 flex flex-col gap-2">
+          <div className="w-full">
+             <LanguageSwitcher />
+          </div>
+          <div className="grow group-data-[collapsible=icon]:grow-0 w-full">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="w-full justify-start group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:h-8 group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:aspect-square">
                   <Avatar className="h-8 w-8 mr-2 group-data-[collapsible=icon]:mr-0">
-                    <AvatarImage src={currentUser.avatarUrl} alt={currentUser.name} data-ai-hint="profile avatar" />
-                    <AvatarFallback>{currentUser.name.substring(0, 1)}</AvatarFallback>
+                    <AvatarImage src={currentUser.avatarUrl} alt={currentUserName} data-ai-hint="profile avatar" />
+                    <AvatarFallback>{currentUserName.substring(0, 1)}</AvatarFallback>
                   </Avatar>
-                  <span className="group-data-[collapsible=icon]:hidden grow text-left">{currentUser.name}</span>
+                  <span className="group-data-[collapsible=icon]:hidden grow text-left">{currentUserName}</span>
                   <ChevronDown className="h-4 w-4 group-data-[collapsible=icon]:hidden" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent side="top" align="start" className="w-56 mb-2">
-                <DropdownMenuLabel>My Account ({currentUser.role})</DropdownMenuLabel>
+                <DropdownMenuLabel>{t('appShell.myAccount')} ({currentUser.role})</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onSelect={() => router.push('/dashboard/settings')}>
+                <DropdownMenuItem onSelect={() => router.push(`/${currentLocale}/dashboard/settings`)}>
                   <Settings className="mr-2 h-4 w-4" />
-                  <span>Settings</span>
+                  <span>{t('appShell.settings')}</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem onSelect={handleLogout} className="text-destructive focus:text-destructive-foreground focus:bg-destructive">
                   <LogOut className="mr-2 h-4 w-4" />
-                  <span>Log out</span>
+                  <span>{t('appShell.logout')}</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

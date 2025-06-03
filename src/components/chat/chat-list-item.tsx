@@ -2,7 +2,7 @@
 "use client";
 
 import Link from 'next/link';
-import type { Chat } from '@/types';
+import type { Chat, Locale } from '@/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -25,7 +25,9 @@ import {
 import { cn } from '@/lib/utils';
 import { formatDistanceToNowStrict } from 'date-fns';
 import { Users, User, Lock, Volume2, MoreHorizontal, Trash2 } from 'lucide-react';
-import { useState } from 'react'; // Added import
+import { useState } from 'react';
+import { useI18n, useCurrentLocale } from '@/lib/i18n/client';
+import { getLocalizedName } from '@/lib/mock-data';
 
 interface ChatListItemProps {
   chat: Chat;
@@ -34,13 +36,18 @@ interface ChatListItemProps {
 }
 
 export function ChatListItem({ chat, isActive, onDeleteChat }: ChatListItemProps) {
-  const [isAlertOpen, setIsAlertOpen] = useState(false); // State for AlertDialog
+  const [isAlertOpen, setIsAlertOpen] = useState(false);
+  const t = useI18n();
+  const currentLocale = useCurrentLocale() as Locale;
 
   const lastMessageTime = chat.lastMessage?.timestamp
     ? formatDistanceToNowStrict(new Date(chat.lastMessage.timestamp), { addSuffix: true })
     : '';
 
   const ChatIcon = chat.type === 'group' ? Users : chat.type === 'broadcast_channel' ? Volume2 : User;
+  const chatName = getLocalizedName(chat.name, currentLocale);
+  const lastMessageSenderName = chat.lastMessage?.senderName ? getLocalizedName(chat.lastMessage.senderName, currentLocale) : '';
+
 
   const handleDeleteClick = (e: React.MouseEvent) => {
     e.stopPropagation(); 
@@ -58,7 +65,7 @@ export function ChatListItem({ chat, isActive, onDeleteChat }: ChatListItemProps
 
   return (
     <div className="relative group">
-      <Link href={`/dashboard/chat/${chat.id}`} passHref legacyBehavior>
+      <Link href={`/${currentLocale}/dashboard/chat/${chat.id}`} passHref legacyBehavior>
         <a
           className={cn(
             'flex items-center gap-3 rounded-lg p-3 transition-all hover:bg-accent/50',
@@ -66,14 +73,14 @@ export function ChatListItem({ chat, isActive, onDeleteChat }: ChatListItemProps
           )}
         >
           <Avatar className="h-12 w-12 border-2 border-transparent group-hover:border-primary data-[active=true]:border-primary">
-            <AvatarImage src={chat.avatarUrl} alt={chat.name} data-ai-hint={chat.type === 'group' ? 'group discussion' : 'person talking'} />
+            <AvatarImage src={chat.avatarUrl} alt={chatName} data-ai-hint={chat.type === 'group' ? 'group discussion' : 'person talking'} />
             <AvatarFallback>
               <ChatIcon className="h-6 w-6 text-muted-foreground" />
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 truncate">
             <div className="flex items-center justify-between">
-              <h3 className="font-semibold truncate">{chat.name}</h3>
+              <h3 className="font-semibold truncate">{chatName}</h3>
               {chat.lastMessage && (
                 <span className={cn("text-xs", isActive ? "text-accent-foreground/80" : "text-muted-foreground")}>
                   {lastMessageTime}
@@ -82,7 +89,7 @@ export function ChatListItem({ chat, isActive, onDeleteChat }: ChatListItemProps
             </div>
             <div className="flex items-center justify-between text-sm">
               <p className={cn("truncate", isActive ? "text-accent-foreground/90" : "text-muted-foreground")}>
-                {chat.lastMessage?.senderName && `${chat.lastMessage.senderName}: `}{chat.lastMessage?.content || 'No messages yet'}
+                {lastMessageSenderName && `${lastMessageSenderName}: `}{chat.lastMessage?.content || t('chatList.noMessagesYet')}
               </p>
               <div className="flex items-center gap-1">
                 {chat.isEncrypted && <Lock size={12} className={cn(isActive ? "text-accent-foreground/70" : "text-muted-foreground/70")} />}
@@ -102,7 +109,7 @@ export function ChatListItem({ chat, isActive, onDeleteChat }: ChatListItemProps
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleDeleteClick}>
               <MoreHorizontal size={18} />
-              <span className="sr-only">More options</span>
+              <span className="sr-only">{t('chatList.moreOptions')}</span>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
@@ -111,7 +118,7 @@ export function ChatListItem({ chat, isActive, onDeleteChat }: ChatListItemProps
               onClick={handleDeleteInitiate}
             >
               <Trash2 className="mr-2 h-4 w-4" />
-              Delete Chat
+              {t('chatList.deleteChatAction')}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -119,19 +126,18 @@ export function ChatListItem({ chat, isActive, onDeleteChat }: ChatListItemProps
         <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
           <AlertDialogContent onClick={(e) => e.stopPropagation()}>
             <AlertDialogHeader>
-              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+              <AlertDialogTitle>{t('chatList.deleteChatTitle')}</AlertDialogTitle>
               <AlertDialogDescription>
-                This action cannot be undone. This will permanently delete the chat
-                "{chat.name}" and all its messages from your local view.
+                {t('chatList.deleteChatDescription', { chatName })}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel onClick={() => setIsAlertOpen(false)}>Cancel</AlertDialogCancel>
+              <AlertDialogCancel onClick={() => setIsAlertOpen(false)}>{t('chatList.deleteChatCancel')}</AlertDialogCancel>
               <AlertDialogAction
                 onClick={handleConfirmDelete}
                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               >
-                Delete
+                {t('chatList.deleteChatConfirm')}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

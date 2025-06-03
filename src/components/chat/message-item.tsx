@@ -1,7 +1,7 @@
 
 "use client";
 
-import type { Message } from '@/types';
+import type { Message, Locale } from '@/types';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -9,6 +9,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Check, CheckCheck, Clock, Paperclip, MapPin, Mic, AlertTriangle, Play } from 'lucide-react';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
+import { useCurrentLocale, useI18n } from '@/lib/i18n/client';
+import { getLocalizedName } from '@/lib/mock-data';
 
 interface MessageItemProps {
   message: Message;
@@ -18,6 +20,10 @@ interface MessageItemProps {
 export function MessageItem({ message, isGroupChat }: MessageItemProps) {
   const isOwn = message.isOwnMessage;
   const { toast } = useToast();
+  const currentLocale = useCurrentLocale() as Locale;
+  // const t = useI18n(); // If needed for other text within MessageItem
+
+  const senderDisplayName = getLocalizedName(message.senderName, currentLocale);
 
   const MessageStatusIcon = () => {
     if (!isOwn) return null;
@@ -48,7 +54,6 @@ export function MessageItem({ message, isGroupChat }: MessageItemProps) {
         );
       case 'voice':
         if (message.content.startsWith('data:audio/')) {
-          // Recorded audio message (Data URL)
           return (
             <div className="flex items-center gap-2">
               <Mic size={18} />
@@ -56,11 +61,10 @@ export function MessageItem({ message, isGroupChat }: MessageItemProps) {
             </div>
           );
         } else {
-          // Mock voice message (placeholder text)
           return (
             <div className="flex items-center gap-2">
               <Mic size={18} />
-              <span>{message.content}</span> {/* e.g., "Voice Message (0:32)" */}
+              <span>{message.content}</span> 
               <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => toast({ title: "Playback for this message type is not implemented."})}>
                 <Play size={16} />
               </Button>
@@ -80,7 +84,7 @@ export function MessageItem({ message, isGroupChat }: MessageItemProps) {
             </CardContent>
           </Card>
         );
-      default: // text
+      default: 
         return <p className="whitespace-pre-wrap break-words">{message.content}</p>;
     }
   };
@@ -89,15 +93,15 @@ export function MessageItem({ message, isGroupChat }: MessageItemProps) {
     <div className={cn('flex gap-3 p-3 items-end', isOwn ? 'justify-end' : 'justify-start')}>
       {!isOwn && (
         <Avatar className="h-8 w-8 self-start">
-          <AvatarImage src={message.senderAvatarUrl} alt={message.senderName} data-ai-hint="user avatar" />
-          <AvatarFallback>{message.senderName?.substring(0, 1) || 'U'}</AvatarFallback>
+          <AvatarImage src={message.senderAvatarUrl} alt={senderDisplayName} data-ai-hint="user avatar" />
+          <AvatarFallback>{senderDisplayName?.substring(0, 1) || 'U'}</AvatarFallback>
         </Avatar>
       )}
       <div className={cn(
           'max-w-[70%] rounded-xl px-4 py-2.5 shadow-md',
           isOwn ? 'bg-primary text-primary-foreground rounded-br-none' : 'bg-secondary text-secondary-foreground rounded-bl-none'
         )}>
-        {isGroupChat && !isOwn && <p className="text-xs font-semibold mb-1 text-muted-foreground">{message.senderName}</p>}
+        {isGroupChat && !isOwn && <p className="text-xs font-semibold mb-1 text-muted-foreground">{senderDisplayName}</p>}
         <div className="text-sm">
          {renderContent()}
         </div>
@@ -110,8 +114,8 @@ export function MessageItem({ message, isGroupChat }: MessageItemProps) {
       </div>
        {isOwn && (
         <Avatar className="h-8 w-8 self-start">
-          <AvatarImage src={message.senderAvatarUrl} alt={message.senderName} data-ai-hint="user avatar" />
-          <AvatarFallback>{message.senderName?.substring(0, 1) || 'U'}</AvatarFallback>
+          <AvatarImage src={message.senderAvatarUrl} alt={senderDisplayName} data-ai-hint="user avatar" />
+          <AvatarFallback>{senderDisplayName?.substring(0, 1) || 'U'}</AvatarFallback>
         </Avatar>
       )}
     </div>

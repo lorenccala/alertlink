@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Paperclip, Mic, MapPin, Send, Smile, StopCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { useI18n } from '@/lib/i18n/client';
 
 interface MessageInputProps {
   onSendMessage: (content: string, type: 'text' | 'file' | 'location' | 'voice') => void;
@@ -16,13 +17,13 @@ interface MessageInputProps {
 export function MessageInput({ onSendMessage, chatId }: MessageInputProps) {
   const [message, setMessage] = useState('');
   const { toast } = useToast();
+  const t = useI18n();
   const [isRecording, setIsRecording] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const audioStreamRef = useRef<MediaStream | null>(null);
 
   useEffect(() => {
-    // Cleanup function to stop recording and release media resources
     return () => {
       if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
         mediaRecorderRef.current.stop();
@@ -41,13 +42,11 @@ export function MessageInput({ onSendMessage, chatId }: MessageInputProps) {
 
   const handleMicClick = async () => {
     if (isRecording) {
-      // Stop recording
       if (mediaRecorderRef.current) {
         mediaRecorderRef.current.stop();
       }
       setIsRecording(false);
     } else {
-      // Start recording
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         audioStreamRef.current = stream;
@@ -62,9 +61,6 @@ export function MessageInput({ onSendMessage, chatId }: MessageInputProps) {
 
         mediaRecorderRef.current.onstop = () => {
           const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-          const audioUrl = URL.createObjectURL(audioBlob); // Or convert to Data URL if preferred
-
-          // To convert to Data URL (larger string, but self-contained)
           const reader = new FileReader();
           reader.onloadend = () => {
             if (typeof reader.result === 'string') {
@@ -72,15 +68,12 @@ export function MessageInput({ onSendMessage, chatId }: MessageInputProps) {
             } else {
                toast({
                 variant: 'destructive',
-                title: 'Recording Error',
-                description: 'Could not process recorded audio.',
+                title: t('messageInput.recordingErrorTitle'),
+                description: t('messageInput.recordingErrorDescription'),
               });
             }
           };
           reader.readAsDataURL(audioBlob);
-
-
-          // Clean up stream tracks
           stream.getTracks().forEach(track => track.stop());
           audioStreamRef.current = null;
         };
@@ -88,25 +81,26 @@ export function MessageInput({ onSendMessage, chatId }: MessageInputProps) {
         mediaRecorderRef.current.start();
         setIsRecording(true);
         toast({
-          title: "Recording Started",
-          description: "Click the stop button to finish recording.",
+          title: t('messageInput.recordingStartedTitle'),
+          description: t('messageInput.recordingStartedDescription'),
         });
       } catch (error) {
         console.error('Error accessing microphone:', error);
         toast({
           variant: 'destructive',
-          title: 'Microphone Access Denied',
-          description: 'Please enable microphone permissions in your browser settings.',
+          title: t('messageInput.micAccessDeniedTitle'),
+          description: t('messageInput.micAccessDeniedDescription'),
         });
         setIsRecording(false);
       }
     }
   };
   
-  const handleFeatureClick = (featureName: string) => {
+  const handleFeatureClick = (featureNameKey: string) => {
+    const featureName = t(featureNameKey as any);
     toast({
-      title: `${featureName} Feature`,
-      description: `${featureName} functionality is not yet implemented in this demo.`,
+      title: t('chatHeader.featureNotImplemented', {featureName}), // Reusing general key
+      description: t('chatHeader.featureNotImplementedDescription', {featureName}),
     });
   };
 
@@ -116,7 +110,7 @@ export function MessageInput({ onSendMessage, chatId }: MessageInputProps) {
     <div className="sticky bottom-0 border-t bg-background p-3 md:p-4">
       <div className="relative flex items-end gap-2">
         <Textarea
-          placeholder="Type your message..."
+          placeholder={t('messageInput.placeholder')}
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           onKeyDown={(e) => {
@@ -152,7 +146,7 @@ export function MessageInput({ onSendMessage, chatId }: MessageInputProps) {
             </PopoverContent>
           </Popover>
 
-          <Button variant="ghost" size="icon" className="rounded-full text-muted-foreground hover:text-primary" onClick={() => handleFeatureClick('File Sharing')}>
+          <Button variant="ghost" size="icon" className="rounded-full text-muted-foreground hover:text-primary" onClick={() => handleFeatureClick('messageInput.fileSharingFeature')}>
             <Paperclip size={22} />
           </Button>
           <Button variant="ghost" size="icon" className="rounded-full text-muted-foreground hover:text-primary md:hidden" onClick={handleMicClick}>
@@ -171,10 +165,10 @@ export function MessageInput({ onSendMessage, chatId }: MessageInputProps) {
       <div className="mt-2 flex gap-2 justify-start md:justify-end">
         <Button variant="outline" size="sm" className="hidden md:inline-flex" onClick={handleMicClick}>
           {isRecording ? <StopCircle size={16} className="mr-2 text-destructive animate-pulse" /> : <Mic size={16} className="mr-2" />}
-          {isRecording ? 'Stop Recording' : 'Voice Message'}
+          {isRecording ? t('messageInput.stopRecordingButton') : t('messageInput.voiceMessageButton')}
         </Button>
-        <Button variant="outline" size="sm" onClick={() => handleFeatureClick('Location Sharing')}>
-          <MapPin size={16} className="mr-2" /> Share Location
+        <Button variant="outline" size="sm" onClick={() => handleFeatureClick('messageInput.locationSharingFeature')}>
+          <MapPin size={16} className="mr-2" /> {t('messageInput.locationSharingFeature')}
         </Button>
       </div>
     </div>

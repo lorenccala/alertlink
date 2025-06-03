@@ -1,10 +1,10 @@
 
 "use client";
 
-import type { Chat, User } from '@/types';
+import type { Chat, User, Locale } from '@/types';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ChatListItem } from './chat-list-item';
-import { mockChats, mockUsers, getCurrentUser } from '@/lib/mock-data';
+import { mockChats as initialMockChats, mockUsers, getCurrentUser, getLocalizedName } from '@/lib/mock-data';
 import { usePathname, useRouter } from 'next/navigation';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
@@ -13,11 +13,14 @@ import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { Search, UserPlus, User as UserIcon } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { useI18n, useCurrentLocale } from '@/lib/i18n/client';
 
 export function ChatList() {
   const pathname = usePathname();
   const router = useRouter();
   const { toast } = useToast();
+  const t = useI18n();
+  const currentLocale = useCurrentLocale() as Locale;
   
   const [searchTerm, setSearchTerm] = useState('');
   const [isNewChatDialogOpen, setIsNewChatDialogOpen] = useState(false);
@@ -29,17 +32,18 @@ export function ChatList() {
   useEffect(() => {
     const user = getCurrentUser();
     setCurrentUser(user);
-    setChatsState(mockChats); 
+    setChatsState(initialMockChats); 
 
     if (user) {
       setAvailableUsers(mockUsers.filter(u => u.id !== user.id));
     }
   }, []);
 
-  const filteredChats = chatsState.filter(chat => 
-    chat.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  const filteredChats = chatsState.filter(chat => {
+    const chatName = getLocalizedName(chat.name, currentLocale);
+    return chatName.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (chat.lastMessage?.content && chat.lastMessage.content.toLowerCase().includes(searchTerm.toLowerCase()))
-  ).sort((a, b) => {
+  }).sort((a, b) => {
     if (a.lastMessage?.timestamp && b.lastMessage?.timestamp) {
       return new Date(b.lastMessage.timestamp).getTime() - new Date(a.lastMessage.timestamp).getTime();
     }
@@ -58,12 +62,12 @@ export function ChatList() {
     );
 
     if (existingChat) {
-      router.push(`/dashboard/chat/${existingChat.id}`);
+      router.push(`/${currentLocale}/dashboard/chat/${existingChat.id}`);
     } else {
       const newChatId = `chat${Date.now()}`;
       const newChat: Chat = {
         id: newChatId,
-        name: selectedUser.name,
+        name: selectedUser.name, // Name is LocalizedString
         type: 'direct',
         participants: [currentUser, selectedUser],
         avatarUrl: selectedUser.avatarUrl,
@@ -72,7 +76,7 @@ export function ChatList() {
         unreadCount: 0,
       };
       setChatsState(prevChats => [newChat, ...prevChats]);
-      router.push(`/dashboard/chat/${newChatId}`);
+      router.push(`/${currentLocale}/dashboard/chat/${newChatId}`);
     }
     setIsNewChatDialogOpen(false);
   };
@@ -80,23 +84,24 @@ export function ChatList() {
   const handleDeleteChat = (chatId: string) => {
     const chatToDelete = chatsState.find(c => c.id === chatId);
     if (!chatToDelete) return;
+    const chatName = getLocalizedName(chatToDelete.name, currentLocale);
 
     setChatsState(prevChats => prevChats.filter(chat => chat.id !== chatId));
     
-    if (pathname === `/dashboard/chat/${chatId}`) {
-      router.push('/dashboard');
+    if (pathname === `/${currentLocale}/dashboard/chat/${chatId}`) {
+      router.push(`/${currentLocale}/dashboard`);
     }
 
     toast({
-      title: "Chat Deleted",
-      description: `Chat "${chatToDelete.name}" has been removed.`,
+      title: t('chatList.deleteChatSuccessTitle'),
+      description: t('chatList.deleteChatSuccessDescription', { chatName }),
     });
   };
 
   if (!currentUser) {
     return (
       <div className="flex h-full flex-col border-r bg-background/80 backdrop-blur-sm p-4 items-center justify-center">
-        <p>Loading user data...</p>
+        <p>{t('chatList.loadingUserData')}</p>
       </div>
     );
   }
@@ -108,7 +113,7 @@ export function ChatList() {
           <div className="relative grow">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input 
-              placeholder="Search or start new chat" 
+              placeholder={t('appShell.searchChats')}
               className="pl-8"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -116,36 +121,39 @@ export function ChatList() {
           </div>
           <Dialog open={isNewChatDialogOpen} onOpenChange={setIsNewChatDialogOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline" size="icon" title="New Chat">
+              <Button variant="outline" size="icon" title={t('chatList.newChatTooltip')}>
                 <UserPlus className="h-5 w-5" />
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
               <DialogHeader>
-                <DialogTitle>Start a new chat</DialogTitle>
-                <DialogDescription>Select a user to begin a conversation.</DialogDescription>
+                <DialogTitle>{t('chatList.newChatDialogTitle')}</DialogTitle>
+                <DialogDescription>{t('chatList.newChatDialogDescription')}</DialogDescription>
               </DialogHeader>
               <ScrollArea className="max-h-[60vh]">
                 <div className="space-y-2 p-1">
-                  {availableUsers.map(user => (
-                    <Button
-                      key={user.id}
-                      variant="ghost"
-                      className="w-full justify-start h-auto p-2"
-                      onClick={() => handleSelectUser(user)}
-                    >
-                      <Avatar className="h-10 w-10 mr-3">
-                        <AvatarImage src={user.avatarUrl} alt={user.name} data-ai-hint="user profile"/>
-                        <AvatarFallback>
-                          {user.name ? user.name.substring(0,1) : <UserIcon size={20} />}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="text-left">
-                        <p className="font-medium">{user.name}</p>
-                        <p className="text-xs text-muted-foreground">{user.role}</p>
-                      </div>
-                    </Button>
-                  ))}
+                  {availableUsers.map(user => {
+                    const userName = getLocalizedName(user.name, currentLocale);
+                    return (
+                      <Button
+                        key={user.id}
+                        variant="ghost"
+                        className="w-full justify-start h-auto p-2"
+                        onClick={() => handleSelectUser(user)}
+                      >
+                        <Avatar className="h-10 w-10 mr-3">
+                          <AvatarImage src={user.avatarUrl} alt={userName} data-ai-hint="user profile"/>
+                          <AvatarFallback>
+                            {userName ? userName.substring(0,1) : <UserIcon size={20} />}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="text-left">
+                          <p className="font-medium">{userName}</p>
+                          <p className="text-xs text-muted-foreground">{user.role}</p>
+                        </div>
+                      </Button>
+                    );
+                  })}
                 </div>
               </ScrollArea>
             </DialogContent>
@@ -159,16 +167,16 @@ export function ChatList() {
               <ChatListItem
                 key={chat.id}
                 chat={chat}
-                isActive={pathname === `/dashboard/chat/${chat.id}`}
+                isActive={pathname === `/${currentLocale}/dashboard/chat/${chat.id}`}
                 onDeleteChat={handleDeleteChat}
               />
             ))
           ) : (
              <div className="p-4 text-center text-muted-foreground flex flex-col items-center justify-center h-full">
               <img src="https://placehold.co/300x200.png?text=No+Chats" alt="No chats" className="mb-4 rounded-md opacity-70" data-ai-hint="empty state illustration"/>
-              <p>No chats found.</p>
-              {searchTerm && <p className="text-sm">Try a different search term.</p>}
-              {!searchTerm && <p className="text-sm">Click the '+' icon to start a new chat.</p>}
+              <p>{t('chatList.noChatsFound')}</p>
+              {searchTerm && <p className="text-sm">{t('chatList.noChatsSearchHint')}</p>}
+              {!searchTerm && <p className="text-sm">{t('chatList.noChatsNewHint')}</p>}
             </div>
           )}
         </div>

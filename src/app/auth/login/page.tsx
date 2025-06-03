@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from 'react';
@@ -9,10 +10,15 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ShieldAlert } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useI18n, useCurrentLocale } from '@/lib/i18n/client';
+import type { Locale } from '@/lib/i18n/settings';
 
 export default function LoginPage() {
   const router = useRouter();
   const { toast } = useToast();
+  const t = useI18n();
+  const currentLocale = useCurrentLocale() as Locale;
+
   const [otp, setOtp] = useState('');
   const [role, setRole] = useState('responder');
   const [isLoading, setIsLoading] = useState(false);
@@ -26,15 +32,15 @@ export default function LoginPage() {
       localStorage.setItem('alertlink-user-role', role);
       localStorage.setItem('alertlink-auth', 'true');
       toast({
-        title: "Login Successful",
-        description: `Welcome! You are logged in as ${role}.`,
+        title: t('loginPage.loginSuccessTitle'),
+        description: t('loginPage.loginSuccessDescription', { role }),
       });
-      router.push('/dashboard');
+      router.push(`/${currentLocale}/dashboard`);
     } else {
       toast({
         variant: "destructive",
-        title: "Login Failed",
-        description: "Invalid OTP. Please try again.",
+        title: t('loginPage.loginFailedTitle'),
+        description: t('loginPage.loginFailedDescription'),
       });
     }
     setIsLoading(false);
@@ -47,44 +53,44 @@ export default function LoginPage() {
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary">
             <ShieldAlert size={32} />
           </div>
-          <CardTitle className="font-headline text-3xl">AlertLink</CardTitle>
-          <CardDescription>Secure Emergency Messaging</CardDescription>
+          <CardTitle className="font-headline text-3xl">{t('loginPage.mainTitle')}</CardTitle>
+          <CardDescription>{t('loginPage.tagline')}</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="otp">One-Time Password (OTP)</Label>
+              <Label htmlFor="otp">{t('loginPage.otpLabel')}</Label>
               <Input
                 id="otp"
                 type="text"
-                placeholder="Enter your OTP"
+                placeholder={t('loginPage.otpPlaceholder')}
                 value={otp}
                 onChange={(e) => setOtp(e.target.value)}
                 required
                 className="text-lg"
               />
-              <p className="text-xs text-muted-foreground">Hint: Use '123456' for demo.</p>
+              <p className="text-xs text-muted-foreground">{t('loginPage.otpHint')}</p>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="role">Select Role (for demo)</Label>
+              <Label htmlFor="role">{t('loginPage.roleLabel')}</Label>
               <Select value={role} onValueChange={setRole}>
                 <SelectTrigger id="role">
-                  <SelectValue placeholder="Select your role" />
+                  <SelectValue placeholder={t('loginPage.rolePlaceholder')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="admin">Admin</SelectItem>
-                  <SelectItem value="responder">Emergency Responder</SelectItem>
-                  <SelectItem value="observer">Public/Observer</SelectItem>
+                  <SelectItem value="admin">{t('loginPage.adminRole')}</SelectItem>
+                  <SelectItem value="responder">{t('loginPage.responderRole')}</SelectItem>
+                  <SelectItem value="observer">{t('loginPage.observerRole')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <Button type="submit" className="w-full text-lg py-6" disabled={isLoading}>
-              {isLoading ? "Verifying..." : "Login Securely"}
+              {isLoading ? t('loginPage.verifyingButton') : t('loginPage.loginButton')}
             </Button>
           </form>
         </CardContent>
         <CardFooter className="text-center text-xs text-muted-foreground">
-          <p>© {new Date().getFullYear()} AlertLink. For emergency use only.</p>
+          <p>{t('loginPage.footerText', { year: new Date().getFullYear() })}</p>
         </CardFooter>
       </Card>
     </div>

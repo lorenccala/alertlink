@@ -1,8 +1,16 @@
+
+export type Locale = 'en' | 'sq';
+
+export interface LocalizedString {
+  en: string;
+  sq: string;
+}
+
 export type UserRole = 'admin' | 'responder' | 'observer';
 
 export interface User {
   id: string;
-  name: string;
+  name: LocalizedString;
   avatarUrl?: string;
   role: UserRole;
   status?: 'online' | 'offline' | 'typing';
@@ -15,9 +23,9 @@ export interface Message {
   id: string;
   chatId: string;
   senderId: string;
-  senderName: string; // Added for convenience
-  senderAvatarUrl?: string; // Added for convenience
-  content: string;
+  senderName: LocalizedString; 
+  senderAvatarUrl?: string; 
+  content: string; // Content itself is not localized in this model, but could be a key if needed
   timestamp: string; 
   type: 'text' | 'voice' | 'file' | 'location' | 'alert';
   fileName?: string;
@@ -29,11 +37,15 @@ export interface Message {
 
 export interface Chat {
   id: string;
-  name: string;
+  name: LocalizedString;
   type: 'direct' | 'group' | 'broadcast_channel';
   participants: User[]; 
   admins?: string[]; 
-  lastMessage?: Pick<Message, 'content' | 'timestamp' | 'senderName'>;
+  lastMessage?: {
+    content: string; // Assuming last message content is not a translation key for simplicity
+    timestamp: string;
+    senderName?: LocalizedString; // Make senderName here localized too
+  };
   unreadCount?: number;
   avatarUrl?: string; 
   isEncrypted?: boolean;
@@ -43,11 +55,11 @@ export type AlertPriority = 'low' | 'medium' | 'high' | 'critical';
 
 export interface BroadcastAlert {
   id: string;
-  title: string;
-  content: string;
+  title: string; // Could be LocalizedString if titles need translation
+  content: string; // Could be LocalizedString
   priority: AlertPriority;
   timestamp: string; 
   senderId: string; 
-  senderName: string;
+  senderName: LocalizedString;
   targetRoles: UserRole[];
 }

@@ -2,14 +2,15 @@
 "use client";
 
 import { useEffect, useState, useRef } from 'react';
-import type { Chat, Message, User } from '@/types';
-import { mockMessages, mockChats, getCurrentUser, mockUsers } from '@/lib/mock-data';
+import type { Chat, Message, User, LocalizedString, Locale } from '@/types';
+import { mockMessages, mockChats, getCurrentUser, mockUsers, getLocalizedName } from '@/lib/mock-data';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { MessageItem } from './message-item';
 import { MessageInput } from './message-input';
 import { ChatHeader } from './chat-header';
 import { MessageSquareDashed } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useCurrentLocale } from '@/lib/i18n/client'; // Assuming you might need locale for something here eventually
 
 interface ChatViewProps {
   chatId: string;
@@ -21,12 +22,14 @@ export function ChatView({ chatId }: ChatViewProps) {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+  const currentLocale = useCurrentLocale() as Locale;
+
 
   useEffect(() => {
     const currentChat = mockChats.find(c => c.id === chatId) || null;
     setChat(currentChat);
     
-    const user = getCurrentUser();
+    const user = getCurrentUser(); // This already returns User with LocalizedString name
     setCurrentUser(user);
 
     if (currentChat) {
@@ -35,6 +38,7 @@ export function ChatView({ chatId }: ChatViewProps) {
         return {
           ...msg,
           isOwnMessage: msg.senderId === user.id,
+          // senderName is already LocalizedString in msg
           senderAvatarUrl: sender?.avatarUrl,
         };
       });
@@ -42,7 +46,7 @@ export function ChatView({ chatId }: ChatViewProps) {
     } else {
       setMessages([]);
     }
-  }, [chatId]);
+  }, [chatId, currentLocale]); // Add currentLocale if any displayed text here depends on it directly
 
   useEffect(() => {
     if (scrollAreaRef.current) {
@@ -61,7 +65,7 @@ export function ChatView({ chatId }: ChatViewProps) {
       id: `msg${Date.now()}`,
       chatId: chat.id,
       senderId: currentUser.id,
-      senderName: currentUser.name,
+      senderName: currentUser.name, // This is LocalizedString
       senderAvatarUrl: currentUser.avatarUrl,
       content,
       timestamp: new Date().toISOString(),
@@ -103,4 +107,3 @@ export function ChatView({ chatId }: ChatViewProps) {
     </div>
   );
 }
-

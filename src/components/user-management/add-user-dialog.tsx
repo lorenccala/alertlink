@@ -14,65 +14,81 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import type { User, UserRole } from '@/types';
+import type { UserRole, LocalizedString } from '@/types';
 import { useToast } from '@/hooks/use-toast';
+import { useI18n } from '@/lib/i18n/client';
 
 interface AddUserDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAddUser: (userData: Omit<User, 'id' | 'avatarUrl' | 'status' | 'lastSeen'> & { email?: string }) => void;
+  onAddUser: (userData: { name: LocalizedString, email?: string, role: UserRole }) => void;
 }
 
 const availableRoles: UserRole[] = ['admin', 'responder', 'observer'];
 
 export function AddUserDialog({ open, onOpenChange, onAddUser }: AddUserDialogProps) {
   const { toast } = useToast();
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState(''); // Optional
+  const t = useI18n();
+
+  const [nameEn, setNameEn] = useState('');
+  const [nameSq, setNameSq] = useState('');
+  const [email, setEmail] = useState(''); 
   const [role, setRole] = useState<UserRole>('responder');
 
   const handleSubmit = () => {
-    if (!name.trim()) {
+    if (!nameEn.trim() || !nameSq.trim()) {
       toast({
         variant: 'destructive',
-        title: 'Validation Error',
-        description: 'User name cannot be empty.',
+        title: t('userManagementPage.addUserDialog.validationErrorTitle'),
+        description: t('userManagementPage.addUserDialog.validationErrorDescription'),
       });
       return;
     }
-    onAddUser({ name, email, role });
-    // Reset form
-    setName('');
+    onAddUser({ name: { en: nameEn, sq: nameSq }, email, role });
+    setNameEn('');
+    setNameSq('');
     setEmail('');
     setRole('responder');
-    onOpenChange(false); // Close dialog
+    onOpenChange(false); 
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Add New User</DialogTitle>
+          <DialogTitle>{t('userManagementPage.addUserDialog.title')}</DialogTitle>
           <DialogDescription>
-            Fill in the details below to add a new user to the system.
+            {t('userManagementPage.addUserDialog.description')}
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="name" className="text-right">
-              Name
+            <Label htmlFor="nameEn" className="text-right">
+              {t('userManagementPage.addUserDialog.nameLabel')} (EN)
             </Label>
             <Input
-              id="name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+              id="nameEn"
+              value={nameEn}
+              onChange={(e) => setNameEn(e.target.value)}
               className="col-span-3"
-              placeholder="e.g., John Doe"
+              placeholder={t('userManagementPage.addUserDialog.namePlaceholder')}
+            />
+          </div>
+           <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="nameSq" className="text-right">
+              {t('userManagementPage.addUserDialog.nameLabel')} (SQ)
+            </Label>
+            <Input
+              id="nameSq"
+              value={nameSq}
+              onChange={(e) => setNameSq(e.target.value)}
+              className="col-span-3"
+              placeholder={t('userManagementPage.addUserDialog.namePlaceholder')}
             />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="email" className="text-right">
-              Email (Optional)
+              {t('userManagementPage.addUserDialog.emailLabel')}
             </Label>
             <Input
               id="email"
@@ -80,21 +96,21 @@ export function AddUserDialog({ open, onOpenChange, onAddUser }: AddUserDialogPr
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="col-span-3"
-              placeholder="e.g., john.doe@example.com"
+              placeholder={t('userManagementPage.addUserDialog.emailPlaceholder')}
             />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="role" className="text-right">
-              Role
+              {t('userManagementPage.addUserDialog.roleLabel')}
             </Label>
             <Select value={role} onValueChange={(value) => setRole(value as UserRole)}>
               <SelectTrigger id="role" className="col-span-3">
-                <SelectValue placeholder="Select a role" />
+                <SelectValue placeholder={t('userManagementPage.addUserDialog.rolePlaceholder')} />
               </SelectTrigger>
               <SelectContent>
                 {availableRoles.map((r) => (
                   <SelectItem key={r} value={r} className="capitalize">
-                    {r}
+                    {r} 
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -102,8 +118,8 @@ export function AddUserDialog({ open, onOpenChange, onAddUser }: AddUserDialogPr
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button type="submit" onClick={handleSubmit}>Add User</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>{t('userManagementPage.addUserDialog.cancelButton')}</Button>
+          <Button type="submit" onClick={handleSubmit}>{t('userManagementPage.addUserDialog.addUserButton')}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
