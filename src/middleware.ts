@@ -42,4 +42,4 @@ export const config = {
         // Skip static files
         '/((?!api|_next/static|_next/image|favicon.ico).*)',
     ],
-}; 
+};
