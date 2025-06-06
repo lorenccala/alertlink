@@ -1,9 +1,8 @@
-
 "use client";
 
 import * as React from 'react';
 import Link from 'next/link';
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter, usePathname, useParams } from 'next/navigation';
 import {
   SidebarProvider,
   Sidebar,
@@ -40,9 +39,10 @@ interface AppShellProps {
 export function AppShell({ children }: AppShellProps) {
   const router = useRouter();
   const pathname = usePathname();
+  const params = useParams();
+  const locale = (params?.locale as string) || 'en';
   const [currentUser, setCurrentUser] = React.useState<User | null>(null);
   const [isClient, setIsClient] = React.useState(false);
-
 
   React.useEffect(() => {
     setIsClient(true);
@@ -50,30 +50,29 @@ export function AppShell({ children }: AppShellProps) {
     const authStatus = localStorage.getItem('alertlink-auth');
 
     if (!authStatus || !storedRole) {
-      router.replace('/auth/login');
+      router.replace(`/${locale}/auth/login`);
       return;
     }
-    
-    const user = mockUsers.find(u => u.role === storedRole) || getCurrentUser();
-    setCurrentUser({...user, role: storedRole}); 
-  }, [router]);
 
+    const user = mockUsers.find(u => u.role === storedRole) || getCurrentUser();
+    setCurrentUser({ ...user, role: storedRole });
+  }, [router, locale]);
 
   const handleLogout = () => {
     localStorage.removeItem('alertlink-user-role');
     localStorage.removeItem('alertlink-auth');
-    router.push('/auth/login');
+    router.push(`/${locale}/auth/login`);
   };
 
   if (!isClient || !currentUser) {
     return <div className="flex h-screen items-center justify-center"><p>Loading user data...</p></div>;
   }
-  
+
   const navItems = [
-    { href: '/dashboard', label: 'Chats', icon: MessageSquare, roles: ['admin', 'responder', 'observer'] },
-    { href: '/dashboard/broadcasts', label: 'Broadcasts', icon: Megaphone, roles: ['admin', 'responder', 'observer'] },
-    { href: '/dashboard/user-management', label: 'User Management', icon: UsersIcon, roles: ['admin'] },
-    { href: '/dashboard/settings', label: 'Settings', icon: Settings, roles: ['admin', 'responder', 'observer'] },
+    { href: `/${locale}/dashboard`, label: 'Chats', icon: MessageSquare, roles: ['admin', 'responder', 'observer'] },
+    { href: `/${locale}/dashboard/broadcasts`, label: 'Broadcasts', icon: Megaphone, roles: ['admin', 'responder', 'observer'] },
+    { href: `/${locale}/dashboard/user-management`, label: 'User Management', icon: UsersIcon, roles: ['admin'] },
+    { href: `/${locale}/dashboard/settings`, label: 'Settings', icon: Settings, roles: ['admin', 'responder', 'observer'] },
   ];
 
   const filteredNavItems = navItems.filter(item => item.roles.includes(currentUser.role));
@@ -86,7 +85,7 @@ export function AppShell({ children }: AppShellProps) {
             <ShieldAlert className="h-8 w-8 text-primary" />
             <h1 className="text-2xl font-headline font-semibold">AlertLink</h1>
           </Link>
-           <Link href="/dashboard" className="items-center gap-2 hidden group-data-[collapsible=icon]:flex">
+          <Link href="/dashboard" className="items-center gap-2 hidden group-data-[collapsible=icon]:flex">
             <ShieldAlert className="h-8 w-8 text-primary" />
           </Link>
         </SidebarHeader>
@@ -97,9 +96,9 @@ export function AppShell({ children }: AppShellProps) {
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input placeholder="Search chats..." className="pl-8" />
             </div>
-             <Button variant="ghost" size="icon" className="hidden group-data-[collapsible=icon]:flex mx-auto mb-2">
-                <Search className="h-5 w-5" />
-             </Button>
+            <Button variant="ghost" size="icon" className="hidden group-data-[collapsible=icon]:flex mx-auto mb-2">
+              <Search className="h-5 w-5" />
+            </Button>
           </SidebarGroup>
 
           <SidebarMenu>
@@ -153,11 +152,11 @@ export function AppShell({ children }: AppShellProps) {
       </Sidebar>
       <SidebarInset className="flex flex-col">
         <header className="sticky top-0 z-10 flex h-[57px] items-center gap-1 border-b bg-background px-4 md:hidden">
-           <SidebarTrigger />
-           <h1 className="text-xl font-semibold">AlertLink</h1>
+          <SidebarTrigger />
+          <h1 className="text-xl font-semibold">AlertLink</h1>
         </header>
         <main className="flex-1 overflow-auto">
-         {children}
+          {children}
         </main>
       </SidebarInset>
     </SidebarProvider>
